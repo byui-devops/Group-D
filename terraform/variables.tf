@@ -7,7 +7,7 @@
    variable "ami_id" {
      description = "AMI ID for the EC2 instance"
      type        = string
-     default     = "ami-0009efd6e924e76ae" 
+     default     = "ami-0017ad631c7152120" 
    }
 
    variable "key_pair_name" {
