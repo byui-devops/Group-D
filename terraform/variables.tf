@@ -1,7 +1,7 @@
 variable "region" {
   description = "AWS region"
   type        = string
-  default     = "us-east-1" # Matches Account ID 164675867921
+  default     = "us-east-1" 
 }
 
 variable "ami_id" {
