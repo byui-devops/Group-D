@@ -1,4 +1,4 @@
-const { getAllTasks, createTask, getTaskById, updateTask, deleteTask } = require('../src/tasks');
+const { getAllTasks, createTask, getTaskById, updateTask, deleteTask } = require('../src/task');
 
 describe('Task Model', () => {
   beforeEach(() => {
