@@ -2,13 +2,26 @@ provider "aws" {
   region = var.region
 }
 
+# Fetch the default VPC
+data "aws_vpc" "default" {
+  default = true
+}
+
+# Fetch a subnet from the default VPC
+data "aws_subnet" "default" {
+  filter {
+    name   = "default-for-az"
+    values = ["true"]
+  }
+  availability_zone = "us-east-1a" # AWS Academy default AZ
+}
+
 resource "aws_instance" "app_server" {
   ami           = var.ami_id
-  instance_type = "t2.micro" # Match your instance type
+  instance_type = "t2.micro"
   key_name      = var.key_pair_name
-  security_groups = [aws_security_group.app_sg.name]
-  vpc_id        = var.vpc_id        # Add VPC ID
-  subnet_id     = var.subnet_id     # Add Subnet ID
+  vpc_security_group_ids = [aws_security_group.app_sg.id]
+  subnet_id     = data.aws_subnet.default.id
 
   tags = {
     Name = "TaskManagementAPI"
@@ -16,9 +29,9 @@ resource "aws_instance" "app_server" {
 }
 
 resource "aws_security_group" "app_sg" {
-  name        = "task-api-sg"
+  name_prefix = "task-api-sg-"
   description = "Allow HTTP and SSH"
-  vpc_id      = var.vpc_id # Associate with VPC
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     from_port   = 80
