@@ -7,11 +7,11 @@ variable "region" {
 variable "ami_id" {
   description = "AMI ID for the EC2 instance"
   type        = string
-  default     = "ami-0c55b159cbfafe1f0" # Example; check AWS Academy console
+  default     = "ami-0c55b159cbfafe1f0" #
 }
 
 variable "key_pair_name" {
   description = "SSH key pair name"
   type        = string
-  default     = "your-key-name" # Replace with your AWS Academy key pair
+  default     = "your-key-name" 
 }
