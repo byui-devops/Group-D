@@ -4,7 +4,7 @@ provider "aws" {
 
 resource "aws_instance" "app_server" {
   ami           = var.ami_id
-  instance_type = "r6a.large" # Match your instance type
+  instance_type = "t2.micro" # Match your instance type
   key_name      = var.key_pair_name
   security_groups = [aws_security_group.app_sg.name]
   vpc_id        = var.vpc_id        # Add VPC ID
