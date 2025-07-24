@@ -34,4 +34,3 @@ jobs:
         run: |
           docker tag group-d anhmeo/group-d:latest
           docker push anhmeo/group-d:latest
-```
