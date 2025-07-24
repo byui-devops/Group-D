@@ -1,19 +1,17 @@
 variable "region" {
-  default = "us-west-2" # Updated to your region
+  description = "AWS region"
+  type        = string
+  default     = "us-east-1" # Matches Account ID 164675867921
 }
 
 variable "ami_id" {
-  default = "ami-05b7ee685cf469e87" # Your AMI ID
+  description = "AMI ID for the EC2 instance"
+  type        = string
+  default     = "ami-0c55b159cbfafe1f0" # Example; check AWS Academy console
 }
 
 variable "key_pair_name" {
-  default = "db_workstation" # Your key pair name
-}
-
-variable "vpc_id" {
-  default = "vpc-0215cbdc36ca4c8e6" # Your VPC ID
-}
-
-variable "subnet_id" {
-  default = "subnet-09a62cafde9d0b2ed" # Your Subnet ID
+  description = "SSH key pair name"
+  type        = string
+  default     = "your-key-name" # Replace with your AWS Academy key pair
 }
