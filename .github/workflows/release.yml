@@ -47,6 +47,11 @@
            id: apply
            working-directory: ./terraform
            run: terraform apply -auto-approve
+         - name: Extract Terraform Outputs
+           run: |
+            echo "INSTANCE_IP=$(jq -r '.resource_changes[] | select(.type == \"aws_instance\") | .change.after.public_ip' ./terraform/output.json)" >> $GITHUB_ENV
+         - name: Debug Terraform Output
+           run: echo "Instance IP:$INSTANCE_IP"
          - name: Log in to Docker Hub
            uses: docker/login-action@v2
            with:
