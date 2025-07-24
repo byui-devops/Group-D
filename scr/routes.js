@@ -1,4 +1,4 @@
-const { getAllTasks, getTaskById, createTask, updateTask, deleteTask } = require('./tasks');
+const { getAllTasks, getTaskById, createTask, updateTask, deleteTask } = require('./task');
 
 module.exports = (app) => {
   app.get('/tasks', (req, res) => {
