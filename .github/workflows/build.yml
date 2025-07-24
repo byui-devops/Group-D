@@ -1,36 +1,36 @@
 name: Build and Test
 
-on:
-  push:
-    branches:
-      - develop
-      - feature/*
-  pull_request:
-    branches:
-      - develop
-      - main
+   on:
+     push:
+       branches:
+         - develop
+         - feature/*
+     pull_request:
+       branches:
+         - develop
+         - main
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-      - name: Install dependencies
-        run: npm install
-      - name: Run tests
-        run: npm test
-      - name: Build Docker image
-        run: docker build -t task-management-api .
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: whansen340
-          password: peteyhansen340
-      - name: Tag and push Docker image          
-        run: |
-          docker tag task-management-api anhmeo/group-d:latest
-          docker push anhmeo/group-d:latest
+   jobs:
+     build:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v3
+         - name: Set up Node.js
+           uses: actions/setup-node@v3
+           with:
+             node-version: '16'
+         - name: Install dependencies
+           run: npm install
+         - name: Run tests
+           run: npm test
+         - name: Build Docker image
+           run: docker build -t group-d .
+         - name: Log in to Docker Hub
+           uses: docker/login-action@v2
+           with:
+             username: ${{ secrets.DOCKERHUB_USERNAME }}
+             password: ${{ secrets.DOCKERHUB_TOKEN }}
+         - name: Tag and push Docker image
+           run: |
+             docker tag group-d anhmeo/group-d:latest
+             docker push anhmeo/group-d:latest
