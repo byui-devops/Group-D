@@ -13,7 +13,7 @@ data "aws_subnet" "default" {
     name   = "default-for-az"
     values = ["true"]
   }
-  availability_zone = "us-east-1a" # AWS Academy default AZ
+  availability_zone = "us-east-1" # AWS Academy default AZ
 }
 
 resource "aws_instance" "app_server" {
