@@ -24,10 +24,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          node-version: '16'
+          python-version: '3.9'
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
         with:
@@ -47,14 +47,15 @@ jobs:
         working-directory: ./terraform
         run: terraform apply -auto-approve
       - name: Debug Terraform Output
-        run: echo "Instance IP:$(terraform -chdir=./terraform output -raw instance_public_ip 2>/dev/null)"
+        run: echo "Instance IP: $(terraform -chdir=./terraform output -raw instance_public_ip 2>/dev/null)"
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build Docker Image
-        run: docker build -t anhmeo/group-d:latest .
+        run: |
+          docker build -t anhmeo/group-d:latest -f Dockerfile .
       - name: Push Docker Image
         run: docker push anhmeo/group-d:latest
       - name: Deploy to EC2
@@ -64,14 +65,14 @@ jobs:
           if [ -z "$INSTANCE_IP" ]; then
             echo "Error: Failed to extract instance_public_ip"
             exit 1
-          fi
+            fi
           echo "Deploying to IP: $INSTANCE_IP"
           # Write SSH key
           echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
           chmod 600 key.pem
           # Pull Docker image
           docker pull anhmeo/group-d:latest
-          # Wait for instance to be reachable (using SSH timeout)
+          # Wait for instance to be reachable
           for i in {1..30}; do
             if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -i key.pem ec2-user@$INSTANCE_IP exit 0 2>/dev/null; then
               echo "SSH port open"
@@ -80,8 +81,10 @@ jobs:
             echo "Waiting for instance $INSTANCE_IP... ($i/30)"
             sleep 10
           done
-          # Deploy via SSH
-          ssh -o StrictHostKeyChecking=no -i key.pem ec2-user@$INSTANCE_IP << 'EOF'
+          # Deploy via SSH with keep-alive and logging
+          ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=60 -i key.pem ec2-user@$INSTANCE_IP << 'EOF'
+            set -e
+            echo "Starting deployment on $(hostname) at $(date)"
             # Install Docker if not present
             if ! command -v docker &> /dev/null; then
               echo "Installing Docker..."
@@ -89,18 +92,34 @@ jobs:
               sudo yum install -y docker
               sudo service docker start
               sudo usermod -aG docker ec2-user
-              # Reload group membership
               newgrp docker
             else
               echo "Docker is already installed"
             fi
-            # Verify Docker daemon is accessible
+            # Verify Docker daemon
+            echo "Checking Docker daemon..."
             if ! docker info &> /dev/null; then
               echo "Error: Cannot connect to Docker daemon"
               exit 1
             fi
+            echo "Stopping and removing old task-api container..."
             docker stop task-api || true
             docker rm task-api || true
-            docker run -d --name task-api -p 80:3000 anhmeo/group-d:latest
+            echo "Pulling and running new container..."
+            docker run -d --name task-api -p 80:8000 anhmeo/group-d:latest
+            # Check container logs
+            echo "Container logs:"
+            docker logs task-api
+            # Wait for port 80 to be available
+            echo "Waiting for port 80..."
+            for i in {1..30}; do
+              if nc -z 127.0.0.1 80; then
+                echo "Port 80 is open"
+                break
+              fi
+              echo "Waiting for port 80... ($i/30)"
+              sleep 5
+            done
+            echo "Deployment complete at $(date)"
           EOF
         working-directory: ${{ github.workspace }}
