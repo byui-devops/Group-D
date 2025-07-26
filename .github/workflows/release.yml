@@ -48,7 +48,11 @@ jobs:
         run: terraform apply -auto-approve
       - name: Extract Terraform Outputs
         run: |
-          INSTANCE_IP=$(terraform -chdir=./terraform output -raw instance_public_ip)
+          INSTANCE_IP=$(terraform -chdir=./terraform output -raw instance_public_ip 2>/dev/null || echo "")
+          if [ -z "$INSTANCE_IP" ]; then
+            echo "Error: Failed to extract instance_public_ip"
+            exit 1
+          fi
           echo "INSTANCE_IP=$INSTANCE_IP" >> $GITHUB_ENV
       - name: Debug Terraform Output
         run: echo "Instance IP:$INSTANCE_IP"
