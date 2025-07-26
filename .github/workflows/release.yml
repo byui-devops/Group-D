@@ -45,11 +45,9 @@ jobs:
       - name: Terraform Apply
         id: apply
         working-directory: ./terraform
-        run: |
-          terraform apply -auto-approve
-          echo "INSTANCE_IP=$(terraform output -raw instance_public_ip)" >> $GITHUB_OUTPUT
+        run: terraform apply -auto-approve
       - name: Debug Terraform Output
-        run: echo "Instance IP:${{ steps.apply.outputs.INSTANCE_IP }}"
+        run: echo "Instance IP:$(terraform -chdir=./terraform output -raw instance_public_ip 2>/dev/null)"
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
@@ -61,19 +59,25 @@ jobs:
         run: docker push anhmeo/group-d:latest
       - name: Deploy to EC2
         run: |
+          INSTANCE_IP=$(terraform -chdir=./terraform output -raw instance_public_ip 2>/dev/null)
+          if [ -z "$INSTANCE_IP" ]; then
+            echo "Error: Failed to extract instance_public_ip"
+            exit 1
+          fi
+          echo "Deploying to IP: $INSTANCE_IP"
           echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
           chmod 600 key.pem
           docker pull anhmeo/group-d:latest
           # Wait for instance to be reachable
           for i in {1..30}; do
-            if nc -z ${{ steps.apply.outputs.INSTANCE_IP }} 22; then
+            if nc -z $INSTANCE_IP 22; then
               echo "SSH port open"
               break
             fi
-            echo "Waiting for instance ${{ steps.apply.outputs.INSTANCE_IP }}... ($i/30)"
+            echo "Waiting for instance $INSTANCE_IP... ($i/30)"
             sleep 10
           done
-          ssh -o StrictHostKeyChecking=no -i key.pem ec2-user@${{ steps.apply.outputs.INSTANCE_IP }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i key.pem ec2-user@$INSTANCE_IP << 'EOF'
             # Install Docker if not present
             if ! command -v docker &> /dev/null; then
               sudo yum update -y
@@ -87,5 +91,4 @@ jobs:
             docker rm task-api || true
             docker run -d --name task-api -p 80:3000 anhmeo/group-d:latest
           EOF
-        env:
-          TF_OUTPUT_instance_public_ip: ${{ steps.apply.outputs.INSTANCE_IP }}
+        working-directory: ${{ github.workspace }}
