@@ -47,7 +47,7 @@ jobs:
         working-directory: ./terraform
         run: terraform apply -auto-approve
       - name: Debug Terraform Output
-        run: echo "Instance IP: $(terraform -chdir=./terraform output -raw instance_public_ip 2>/dev/null)"
+        run: echo "Instance IP:$(terraform -chdir=./terraform output -raw instance_public_ip 2>/dev/null)"
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
