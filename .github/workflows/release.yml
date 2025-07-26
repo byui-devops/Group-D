@@ -65,7 +65,7 @@ jobs:
           if [ -z "$INSTANCE_IP" ]; then
             echo "Error: Failed to extract instance_public_ip"
             exit 1
-            fi
+          fi
           echo "Deploying to IP: $INSTANCE_IP"
           # Write SSH key
           echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
@@ -73,12 +73,12 @@ jobs:
           # Pull Docker image
           docker pull anhmeo/group-d:latest
           # Wait for instance to be reachable
-          for i in {1..30}; do
+          for i in {1..60}; do  # Increased to 60 attempts (10 minutes)
             if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -i key.pem ec2-user@$INSTANCE_IP exit 0 2>/dev/null; then
               echo "SSH port open"
               break
             fi
-            echo "Waiting for instance $INSTANCE_IP... ($i/30)"
+            echo "Waiting for instance $INSTANCE_IP... ($i/60)"
             sleep 10
           done
           # Deploy via SSH with keep-alive and logging
@@ -102,14 +102,14 @@ jobs:
               echo "Error: Cannot connect to Docker daemon"
               exit 1
             fi
-            echo "Stopping and removing old task-api container..."
-            docker stop task-api || true
-            docker rm task-api || true
+            echo "Stopping and removing old CashCat container..."
+            docker stop CashCat || true
+            docker rm CashCat || true
             echo "Pulling and running new container..."
-            docker run -d --name task-api -p 80:8000 anhmeo/group-d:latest
+            docker run -d --name CashCat -p 80:8000 anhmeo/group-d:latest
             # Check container logs
             echo "Container logs:"
-            docker logs task-api
+            docker logs CashCat
             # Wait for port 80 to be available
             echo "Waiting for port 80..."
             for i in {1..30}; do
