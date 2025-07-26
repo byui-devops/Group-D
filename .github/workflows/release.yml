@@ -39,6 +39,12 @@ jobs:
           aws-secret-access-key: ${{ github.event.inputs.aws_secret_access_key || secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ github.event.inputs.aws_session_token || secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
+      - name: Run Tests
+        run: |
+          cd scr/CashCat/cashcat_project/cashcat
+          pip install -r ../../requirements.txt  # Adjust path to requirements.txt
+          pytest tests.py
+          working-directory: ${{ github.workspace }}
       - name: Terraform Init
         working-directory: ./terraform
         run: terraform init
