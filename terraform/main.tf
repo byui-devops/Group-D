@@ -24,13 +24,13 @@ resource "aws_instance" "app_server" {
   subnet_id     = data.aws_subnet.default.id
 
   tags = {
-    Name = "TaskManagementAPI"
+    Name = "CashCat"
   }
 }
 
 resource "aws_security_group" "app_sg" {
-  name_prefix = "task-api-sg-"
-  description = "Allow HTTP and SSH"
+  name_prefix = "cashcat-sg-"
+  description = "Allow HTTP and SSH for CashCat"
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
