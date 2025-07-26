@@ -89,10 +89,15 @@ jobs:
               sudo yum install -y docker
               sudo service docker start
               sudo usermod -aG docker ec2-user
-              # Wait for Docker to be ready
-              sleep 10
+              # Reload group membership
+              newgrp docker
             else
               echo "Docker is already installed"
+            fi
+            # Verify Docker daemon is accessible
+            if ! docker info &> /dev/null; then
+              echo "Error: Cannot connect to Docker daemon"
+              exit 1
             fi
             docker stop task-api || true
             docker rm task-api || true
