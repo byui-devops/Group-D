@@ -21,15 +21,15 @@ jobs:
           python-version: '3.9'
       - name: Install dependencies
         run: |
-          cd src/CashCat/cashcat_project
+          cd scr/CashCat/cashcat_project
           pip install -r requirements.txt
       - name: Run tests
         run: |
-          cd src/CashCat/cashcat_project/cashcat
+          cd scr/CashCat/cashcat_project/cashcat
           pytest tests.py
       - name: Build Docker image
         run: |
-          cd src/CashCat/cashcat_project
+          cd scr/CashCat/cashcat_project
           docker build -t anhmeo/group-d:latest -f Dockerfile .
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
